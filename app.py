@@ -12,8 +12,8 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
     downpayment = 499 if course_started else 199
     remaining_balance = total_cost - downpayment + finance_fee + late_fee
     
-    # Determine first payment date (1st of the course start month)
-    first_payment_date = datetime(course_start_date.year, course_start_date.month, 1)
+    # Determine first payment date (1st of the following month from today's date)
+    first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
     
     monthly_payment = round(remaining_balance / num_payments, 2) if num_payments > 1 else remaining_balance
 
