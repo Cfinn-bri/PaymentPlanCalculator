@@ -1,39 +1,28 @@
-from datetime import datetime, timedelta
+import streamlit as st
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 def calculate_payment_plan(course_end_date_str, total_cost):
     today = datetime.today()
     course_end_date = datetime.strptime(course_end_date_str, "%Y-%m-%d")
     
-    # Finance fee
     finance_fee = 149
-    
-    # Determine the number of months available for payment (excluding current month if past the 1st)
     first_payment_date = datetime(today.year, today.month, 1)
     if today.day > 1:
         first_payment_date += relativedelta(months=1)
     
     months_available = (course_end_date.year - first_payment_date.year) * 12 + (course_end_date.month - first_payment_date.month) + 1
-    
-    # Max payments is 12, but can't exceed available months
     num_payments = min(12, months_available)
     
-    # Immediate downpayment
     downpayment = 199
     remaining_balance = total_cost - downpayment + finance_fee
     
-    # If payments extend past course start date, downpayment increases to 499
     if num_payments > 1:
         downpayment = 499
         remaining_balance = total_cost - downpayment + finance_fee
     
-    # Calculate equal monthly payments
-    if num_payments > 1:
-        monthly_payment = round(remaining_balance / num_payments, 2)
-    else:
-        monthly_payment = remaining_balance
-    
-    # Generate payment schedule
+    monthly_payment = round(remaining_balance / num_payments, 2) if num_payments > 1 else remaining_balance
+
     payment_schedule = [("Immediate Downpayment", f"£{downpayment:.2f}")]
     for i in range(num_payments):
         payment_date = first_payment_date + relativedelta(months=i)
@@ -41,9 +30,17 @@ def calculate_payment_plan(course_end_date_str, total_cost):
     
     return payment_schedule
 
-# Example usage
-course_end_date = "2025-06-30"
-total_cost = 3000
-payment_plan = calculate_payment_plan(course_end_date, total_cost)
-for payment in payment_plan:
-    print(payment)
+# Streamlit UI
+st.title("Payment Plan Calculator")
+
+course_end_date = st.date_input("Course End Date", min_value=datetime.today())
+total_cost = st.number_input("Total Course Cost (£)", min_value=0)
+
+if st.button("Calculate Payment Plan"):
+    if total_cost > 0:
+        payment_plan = calculate_payment_plan(course_end_date.strftime("%Y-%m-%d"), total_cost)
+        st.subheader("Payment Schedule:")
+        for date, amount in payment_plan:
+            st.write(f"{date}: {amount}")
+    else:
+        st.error("Please enter a valid total course cost.")
