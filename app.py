@@ -4,8 +4,8 @@ from dateutil.relativedelta import relativedelta
 
 def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cost, num_payments, course_started):
     today = datetime.today()
-    course_start_date = datetime.strptime(course_start_date_str, "%Y-%m-%d")
-    course_end_date = datetime.strptime(course_end_date_str, "%Y-%m-%d")
+    course_start_date = datetime.strptime(course_start_date_str, "%d-%m-%Y")
+    course_end_date = datetime.strptime(course_end_date_str, "%d-%m-%Y")
     
     finance_fee = 149
     late_fee = 49 if course_started else 0
