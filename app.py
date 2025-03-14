@@ -4,8 +4,8 @@ from dateutil.relativedelta import relativedelta
 
 def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cost, num_payments, course_started):
     today = datetime.today()
-    course_start_date = datetime.strptime(course_start_date_str, "%d-%m-%Y")
-    course_end_date = datetime.strptime(course_end_date_str, "%d-%m-%Y")
+    course_start_date = datetime.strptime(course_start_date_str, "%Y-%m-%d")
+    course_end_date = datetime.strptime(course_end_date_str, "%Y-%m-%d")
     
     finance_fee = 149
     late_fee = 49 if course_started else 0
@@ -22,7 +22,7 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
         payment_schedule.append(("+£49 Late Fee", ""))
     for i in range(num_payments):
         payment_date = first_payment_date + relativedelta(months=i)
-        payment_schedule.append((payment_date.strftime("%d-%m-%Y"), f"£{monthly_payment:.2f}"))
+        payment_schedule.append((payment_date.strftime("%Y-%m-%d"), f"£{monthly_payment:.2f}"))
     
     return payment_schedule
 
@@ -43,7 +43,7 @@ num_payments = st.selectbox("Select Number of Installments", available_installme
 
 if st.button("Calculate Payment Plan"):
     if total_cost > 0:
-        payment_plan = calculate_payment_plan(course_start_date.strftime("%d-%m-%Y"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
+        payment_plan = calculate_payment_plan(course_start_date.strftime("%Y-%m-%d"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
         st.subheader("Payment Schedule:")
         for date, amount in payment_plan:
             st.write(f"{date}: {amount}")
