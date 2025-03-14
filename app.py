@@ -15,13 +15,18 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
     # Determine first payment date (1st of the following month from today's date)
     first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
     
-    monthly_payment = round(remaining_balance / num_payments, 2) if num_payments > 1 else remaining_balance
-
     payment_schedule = [("Immediate Downpayment", f"£{downpayment:.2f}")]
     if course_started:
         payment_schedule.append(("+£49 Late Fee", ""))
+    
     for i in range(num_payments):
         payment_date = first_payment_date + relativedelta(months=i)
+        
+        # Stop adding payments if the next one would be after the course end date
+        if payment_date > course_end_date:
+            break
+        
+        monthly_payment = round(remaining_balance / num_payments, 2) if num_payments > 1 else remaining_balance
         payment_schedule.append((payment_date.strftime("%d-%m-%Y"), f"£{monthly_payment:.2f}"))
     
     return payment_schedule
