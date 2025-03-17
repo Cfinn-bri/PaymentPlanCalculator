@@ -43,7 +43,7 @@ month_options = [
     for i in range((max_end_date.year - course_start_date.year) * 12 + (max_end_date.month - course_start_date.month) + 1)
 ]
 
-selected_end_month = st.radio("Select Ending Month", month_options)
+selected_end_month = st.selectbox("Select Ending Month", month_options)
 
 # Convert selected month to last day of that month
 selected_end_date = datetime.strptime(selected_end_month, "%B %y")
