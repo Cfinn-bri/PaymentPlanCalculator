@@ -1,6 +1,18 @@
 import streamlit as st
+import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
+# Local file path for the Excel document
+EXCEL_FILE_PATH = r"C:\Users\conor.finn\OneDrive - BARBRI Inc\Barbri Inc\OneDrive - BARBRI Inc\Documents\Python Scripts\Products with Start Date & Payment Plan.xlsx"
+
+def load_course_data():
+    try:
+        df = pd.read_excel(EXCEL_FILE_PATH)
+        return df
+    except Exception as e:
+        st.error(f"Error loading Excel file: {e}")
+        return None
 
 def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cost, num_payments, course_started):
     today = datetime.today()
@@ -34,36 +46,41 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
 # Streamlit UI
 st.title("Payment Plan Calculator")
 
-course_start_date = st.date_input("Course Start Date")
-
-# Generate month options for up to 2 years after the start date
-max_end_date = course_start_date + relativedelta(years=2)
-month_options = [
-    (course_start_date + relativedelta(months=i)).strftime("%B %y") 
-    for i in range((max_end_date.year - course_start_date.year) * 12 + (max_end_date.month - course_start_date.month) + 1)
-]
-
-selected_end_month = st.selectbox("Select Ending Month", month_options)
-
-# Convert selected month to last day of that month
-selected_end_date = datetime.strptime(selected_end_month, "%B %y")
-course_end_date = datetime(selected_end_date.year, selected_end_date.month, 1) + relativedelta(day=31)
-
-total_cost = st.number_input("Total Course Cost (£)", min_value=0)
-
-# Convert course_start_date to datetime before comparison
-course_started = datetime.combine(course_start_date, datetime.min.time()) < datetime.today()
-
-# Determine available installment options (must fit within 12 months before course end)
-months_until_end = (course_end_date.year - course_start_date.year) * 12 + (course_end_date.month - course_start_date.month)
-available_installments = list(range(1, min(12, months_until_end + 1) + 1))
-num_payments = st.selectbox("Select Number of Installments", available_installments)
-
-if st.button("Calculate Payment Plan"):
-    if total_cost > 0:
-        payment_plan = calculate_payment_plan(course_start_date.strftime("%d-%m-%Y"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
-        st.subheader("Payment Schedule:")
-        for date, amount in payment_plan:
-            st.write(f"{date}: {amount}")
+df = load_course_data()
+if df is not None:
+    # Ensure required columns exist
+    required_columns = ["Product Name", "Course Start Date", "Course End Date"]
+    if all(col in df.columns for col in required_columns):
+        
+        # Dropdown for selecting a course
+        course_name = st.selectbox("Select Course", df["Product Name"].unique())
+        
+        # Get selected course details
+        selected_course = df[df["Product Name"] == course_name].iloc[0]
+        course_start_date = selected_course["Course Start Date"].strftime("%d-%m-%Y")
+        course_end_date = selected_course["Course End Date"].strftime("%d-%m-%Y")
+        
+        st.write(f"**Start Date:** {course_start_date}")
+        st.write(f"**End Date:** {course_end_date}")
+        
+        total_cost = st.number_input("Total Course Cost (£)", min_value=0)
+        
+        # Convert course_start_date to datetime before comparison
+        course_started = datetime.strptime(course_start_date, "%d-%m-%Y") < datetime.today()
+        
+        # Determine available installment options (must fit within 12 months before course end)
+        course_end_dt = datetime.strptime(course_end_date, "%d-%m-%Y")
+        months_until_end = (course_end_dt.year - datetime.today().year) * 12 + (course_end_dt.month - datetime.today().month)
+        available_installments = list(range(1, min(12, months_until_end + 1) + 1))
+        num_payments = st.selectbox("Select Number of Installments", available_installments)
+        
+        if st.button("Calculate Payment Plan"):
+            if total_cost > 0:
+                payment_plan = calculate_payment_plan(course_start_date, course_end_date, total_cost, num_payments, course_started)
+                st.subheader("Payment Schedule:")
+                for date, amount in payment_plan:
+                    st.write(f"{date}: {amount}")
+            else:
+                st.error("Please enter a valid total course cost.")
     else:
-        st.error("Please enter a valid total course cost.")
+        st.error("Excel file is missing required columns: Product Name, Course Start Date, Course End Date.")
