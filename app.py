@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 def load_course_data(uploaded_file):
     try:
-        df = pd.read_excel(uploaded_file)
+        df = pd.read_excel(uploaded_file, engine='openpyxl')  # Ensure openpyxl is used
         return df
     except Exception as e:
         st.error(f"Error loading Excel file: {e}")
@@ -50,7 +50,7 @@ if uploaded_file is not None:
     
     # Ensure required columns exist
     required_columns = ["Product Name", "Course Start Date", "Course End Date"]
-    if all(col in df.columns for col in required_columns):
+    if df is not None and all(col in df.columns for col in required_columns):
         
         # Dropdown for selecting a course
         course_name = st.selectbox("Select Course", df["Product Name"].unique())
