@@ -3,12 +3,9 @@ import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-# Local file path for the Excel document
-EXCEL_FILE_PATH = r"C:\Users\conor.finn\OneDrive - BARBRI Inc\Barbri Inc\OneDrive - BARBRI Inc\Documents\Python Scripts\Products with Start Date & Payment Plan.xlsx"
-
-def load_course_data():
+def load_course_data(uploaded_file):
     try:
-        df = pd.read_excel(EXCEL_FILE_PATH)
+        df = pd.read_excel(uploaded_file)
         return df
     except Exception as e:
         st.error(f"Error loading Excel file: {e}")
@@ -46,8 +43,11 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
 # Streamlit UI
 st.title("Payment Plan Calculator")
 
-df = load_course_data()
-if df is not None:
+uploaded_file = st.file_uploader("Upload Course Excel File", type=["xls", "xlsx"])
+
+if uploaded_file is not None:
+    df = load_course_data(uploaded_file)
+    
     # Ensure required columns exist
     required_columns = ["Product Name", "Course Start Date", "Course End Date"]
     if all(col in df.columns for col in required_columns):
@@ -83,4 +83,4 @@ if df is not None:
             else:
                 st.error("Please enter a valid total course cost.")
     else:
-        st.error("Excel file is missing required columns: Product Name, Course Start Date, Course End Date.")
+        st.error("Uploaded file is missing required columns: Product Name, Course Start Date, Course End Date.")
