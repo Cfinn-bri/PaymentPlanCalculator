@@ -12,8 +12,8 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
     downpayment = 499 if course_started else 199
     remaining_balance = total_cost - downpayment + finance_fee + late_fee
     
-    # Determine first payment date (1st of the following month from today's date)
-    first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
+    # First payment always on the 1st of the course start month
+    first_payment_date = datetime(course_start_date.year, course_start_date.month, 1)
     
     payment_schedule = [("Immediate Downpayment", f"£{downpayment:.2f}")]
     if course_started:
@@ -35,7 +35,20 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
 st.title("Payment Plan Calculator")
 
 course_start_date = st.date_input("Course Start Date")
-course_end_date = st.date_input("Course End Date", min_value=course_start_date)
+
+# Generate month options for up to 2 years after the start date
+max_end_date = course_start_date + relativedelta(years=2)
+month_options = [
+    (course_start_date + relativedelta(months=i)).strftime("%B %y") 
+    for i in range((max_end_date.year - course_start_date.year) * 12 + (max_end_date.month - course_start_date.month) + 1)
+]
+
+selected_end_month = st.radio("Select Ending Month", month_options)
+
+# Convert selected month to last day of that month
+selected_end_date = datetime.strptime(selected_end_month, "%B %y")
+course_end_date = datetime(selected_end_date.year, selected_end_date.month, 1) + relativedelta(day=31)
+
 total_cost = st.number_input("Total Course Cost (£)", min_value=0)
 
 # Convert course_start_date to datetime before comparison
