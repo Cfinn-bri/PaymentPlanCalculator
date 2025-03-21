@@ -6,29 +6,32 @@ def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cos
     today = datetime.today()
     course_start_date = datetime.strptime(course_start_date_str, "%d-%m-%Y")
     course_end_date = datetime.strptime(course_end_date_str, "%d-%m-%Y")
-    
+
     finance_fee = 149
-    late_fee = 49 if course_started else 0
+    late_fee = 149 if course_started else 0
     downpayment = 499 if course_started else 199
     remaining_balance = total_cost - downpayment + finance_fee + late_fee
-    
-    # First payment always on the 1st of the course start month
-    first_payment_date = datetime(course_start_date.year, course_start_date.month, 1)
-    
+
+    # First payment always on the 1st of the month AFTER the course start date
+    if course_start_date.day == 1:
+        first_payment_date = course_start_date
+    else:
+        first_payment_date = datetime(course_start_date.year, course_start_date.month, 1) + relativedelta(months=1)
+
     payment_schedule = [("Immediate Downpayment", f"£{downpayment:.2f}")]
     if course_started:
-        payment_schedule.append(("+£49 Late Fee", ""))
-    
+        payment_schedule.append(("+£149 Late Fee", ""))
+
     for i in range(num_payments):
         payment_date = first_payment_date + relativedelta(months=i)
-        
+
         # Stop adding payments if the next one would be after the course end date
         if payment_date > course_end_date:
             break
-        
+
         monthly_payment = round(remaining_balance / num_payments, 2) if num_payments > 1 else remaining_balance
         payment_schedule.append((payment_date.strftime("%d-%m-%Y"), f"£{monthly_payment:.2f}"))
-    
+
     return payment_schedule
 
 # Streamlit UI
@@ -39,11 +42,11 @@ course_start_date = st.date_input("Course Start Date")
 # Generate month options for up to 2 years after the start date
 max_end_date = course_start_date + relativedelta(years=2)
 month_options = [
-    (course_start_date + relativedelta(months=i)).strftime("%B %y") 
+    (course_start_date + relativedelta(months=i)).strftime("%B %y")
     for i in range((max_end_date.year - course_start_date.year) * 12 + (max_end_date.month - course_start_date.month) + 1)
 ]
 
-selected_end_month = st.selectbox("Select Ending Month", month_options)
+selected_end_month = st.selectbox("Exam Month", month_options)
 
 # Convert selected month to last day of that month
 selected_end_date = datetime.strptime(selected_end_month, "%B %y")
