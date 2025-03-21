@@ -2,21 +2,14 @@ import streamlit as st
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-def calculate_payment_plan(course_start_date_str, course_end_date_str, total_cost, num_payments, course_started):
-    today = datetime.today()
-    course_start_date = datetime.strptime(course_start_date_str, "%d-%m-%Y")
+def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_cost, num_payments, course_started):
+    first_payment_date = datetime.strptime(first_payment_date_str, "%d-%m-%Y")
     course_end_date = datetime.strptime(course_end_date_str, "%d-%m-%Y")
 
     finance_fee = 149
     late_fee = 149 if course_started else 0
     downpayment = 499 if course_started else 199
     remaining_balance = total_cost - downpayment + finance_fee + late_fee
-
-    # First payment always on the 1st of the month AFTER the course start date
-    if course_start_date.day == 1:
-        first_payment_date = course_start_date
-    else:
-        first_payment_date = datetime(course_start_date.year, course_start_date.month, 1) + relativedelta(months=1)
 
     payment_schedule = [("Immediate Downpayment", f"£{downpayment:.2f}")]
     if course_started:
@@ -52,19 +45,23 @@ selected_end_month = st.selectbox("Exam Month", month_options)
 selected_end_date = datetime.strptime(selected_end_month, "%B %y")
 course_end_date = datetime(selected_end_date.year, selected_end_date.month, 1) + relativedelta(day=31)
 
+# First payment is 1st of next month from today
+today = datetime.today()
+first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
+
+# Determine if course has started
+course_started = datetime.combine(course_start_date, datetime.min.time()) < today
+
 total_cost = st.number_input("Total Course Cost (£)", min_value=0)
 
-# Convert course_start_date to datetime before comparison
-course_started = datetime.combine(course_start_date, datetime.min.time()) < datetime.today()
-
-# Determine available installment options (must fit within 12 months before course end)
-months_until_end = (course_end_date.year - course_start_date.year) * 12 + (course_end_date.month - course_start_date.month)
-available_installments = list(range(1, min(12, months_until_end + 1) + 1))
+# Determine months available between first payment and exam month
+months_until_exam = (course_end_date.year - first_payment_date.year) * 12 + (course_end_date.month - first_payment_date.month)
+available_installments = list(range(1, min(12, months_until_exam + 1) + 1))
 num_payments = st.selectbox("Select Number of Installments", available_installments)
 
 if st.button("Calculate Payment Plan"):
     if total_cost > 0:
-        payment_plan = calculate_payment_plan(course_start_date.strftime("%d-%m-%Y"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
+        payment_plan = calculate_payment_plan(first_payment_date.strftime("%d-%m-%Y"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
         st.subheader("Payment Schedule:")
         for date, amount in payment_plan:
             st.write(f"{date}: {amount}")
