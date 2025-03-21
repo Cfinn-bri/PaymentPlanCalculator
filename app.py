@@ -59,13 +59,13 @@ if uploaded_file:
             downpayment_is_499 = today >= datetime.combine(course_start_date, datetime.min.time())
             course_started = today > datetime.combine(course_start_date, datetime.min.time())
 
+            # Ensure first payment is no more than 12 months before exam date
+            earliest_allowed_payment = course_end_date - relativedelta(months=12)
+            if first_payment_date < earliest_allowed_payment:
+                first_payment_date = datetime(earliest_allowed_payment.year, earliest_allowed_payment.month, 1)
+
             months_until_exam = (course_end_date.year - first_payment_date.year) * 12 + (course_end_date.month - first_payment_date.month)
             months_until_exam = max(months_until_exam, 0)
-
-            # Prevent first payment from being more than 12 months away from the exam
-            if months_until_exam > 12:
-                months_until_exam = 12
-
             available_installments = list(range(1, months_until_exam + 1))
 
             st.write(f"**Start Date:** {course_start_date.strftime('%d-%m-%Y')}")
