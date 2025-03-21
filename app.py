@@ -36,13 +36,13 @@ if uploaded_file:
         df = pd.read_excel(uploaded_file, engine="openpyxl")
         df.columns = df.columns.str.strip().str.lower()
 
-        if all(col in df.columns for col in ["product name", "course start date", "course end date", "total cost"]):
+        if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
             course_name = st.selectbox("Select a Course", df["product name"].unique())
             course_data = df[df["product name"] == course_name].iloc[0]
 
             course_start_date = pd.to_datetime(course_data["course start date"])
             course_end_date = pd.to_datetime(course_data["course end date"])
-            total_cost = float(course_data["total cost"])
+            total_cost = float(course_data["tuition pricing"])
 
             today = datetime.today()
             first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
@@ -74,6 +74,6 @@ if uploaded_file:
             else:
                 st.warning("No available payment months before the exam month.")
         else:
-            st.error("Excel file must contain columns: Product Name, Course Start Date, Course End Date, Total Cost")
+            st.error("Excel file must contain columns: Product Name, Course Start Date, Course End Date, Tuition Pricing")
     except Exception as e:
         st.error(f"Failed to process the Excel file: {e}")
