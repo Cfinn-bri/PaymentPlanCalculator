@@ -61,7 +61,12 @@ if uploaded_file:
 
             months_until_exam = (course_end_date.year - first_payment_date.year) * 12 + (course_end_date.month - first_payment_date.month)
             months_until_exam = max(months_until_exam, 0)
-            available_installments = list(range(1, min(12, months_until_exam + 1) + 1))
+
+            # Prevent first payment from being more than 12 months away from the exam
+            if months_until_exam > 12:
+                months_until_exam = 12
+
+            available_installments = list(range(1, months_until_exam + 1))
 
             st.write(f"**Start Date:** {course_start_date.strftime('%d-%m-%Y')}")
             st.write(f"**Exam Month:** {course_end_date.strftime('%B %Y')}")
