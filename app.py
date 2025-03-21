@@ -33,7 +33,7 @@ uploaded_file = st.file_uploader("Upload Course Excel File", type=["xls", "xlsx"
 
 if uploaded_file:
     try:
-        df = pd.read_excel(uploaded_file, engine="openpyxl", dayfirst=True)
+        df = pd.read_excel(uploaded_file, engine="openpyxl")
         df.columns = df.columns.str.strip().str.lower()
 
         if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
