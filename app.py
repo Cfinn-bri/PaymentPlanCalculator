@@ -33,15 +33,15 @@ uploaded_file = st.file_uploader("Upload Course Excel File", type=["xls", "xlsx"
 
 if uploaded_file:
     try:
-        df = pd.read_excel(uploaded_file, engine="openpyxl")
+        df = pd.read_excel(uploaded_file, engine="openpyxl", dayfirst=True)
         df.columns = df.columns.str.strip().str.lower()
 
         if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
             course_name = st.selectbox("Select a Course", df["product name"].unique())
             course_data = df[df["product name"] == course_name].iloc[0]
 
-            course_start_date = pd.to_datetime(course_data["course start date"])
-            course_end_date = pd.to_datetime(course_data["course end date"])
+            course_start_date = pd.to_datetime(course_data["course start date"], dayfirst=True)
+            course_end_date = pd.to_datetime(course_data["course end date"], dayfirst=True)
             total_cost = float(course_data["tuition pricing"])
 
             today = datetime.today()
