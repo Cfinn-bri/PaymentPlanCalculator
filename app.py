@@ -37,8 +37,18 @@ if uploaded_file:
         df.columns = df.columns.str.strip().str.lower()
 
         if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
-            course_name = st.selectbox("Select a Course", df["product name"].unique())
-            course_data = df[df["product name"] == course_name].iloc[0]
+            # Category Selection
+            categories = {
+                "SQE1": df[df["product name"].str.contains("SQE1", case=False, na=False)],
+                "SQE2": df[df["product name"].str.contains("SQE2", case=False, na=False)],
+                "Complete SQE": df[df["product name"].str.contains("Complete SQE", case=False, na=False)]
+            }
+
+            selected_category = st.selectbox("Select a Category", list(categories.keys()))
+            filtered_df = categories[selected_category]
+
+            course_name = st.selectbox("Select a Course", filtered_df["product name"].unique())
+            course_data = filtered_df[filtered_df["product name"] == course_name].iloc[0]
 
             course_start_date = pd.to_datetime(course_data["course start date"], dayfirst=True)
             course_end_date = pd.to_datetime(course_data["course end date"], dayfirst=True)
