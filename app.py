@@ -42,7 +42,9 @@ if uploaded_file:
             course_name = st.selectbox("Select a Course", df["product name"].unique())
             course_data = df[df["product name"] == course_name].iloc[0]
 
-            course_start_date = course_data["course start date"]
+            # Convert string dates to datetime if needed
+            course_start_date = pd.to_datetime(course_data["course start date"])
+            course_end_date_raw = pd.to_datetime(course_data["course end date"])
             total_cost = course_data["total cost"]
 
             st.write(f"**Start Date:** {course_start_date.strftime('%d-%m-%Y')}")
