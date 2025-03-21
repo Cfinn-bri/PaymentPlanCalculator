@@ -49,21 +49,35 @@ course_end_date = datetime(selected_end_date.year, selected_end_date.month, 1) +
 today = datetime.today()
 first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
 
-# Determine if course has started
-course_started = datetime.combine(course_start_date, datetime.min.time()) < today
+# Determine if course has started (downpayment changes only if today >= course start)
+downpayment_is_499 = today >= datetime.combine(course_start_date, datetime.min.time())
+
+# Determine if course has started (late fee applies if today > course start)
+course_started = today > datetime.combine(course_start_date, datetime.min.time())
 
 total_cost = st.number_input("Total Course Cost (£)", min_value=0)
 
 # Determine months available between first payment and exam month
 months_until_exam = (course_end_date.year - first_payment_date.year) * 12 + (course_end_date.month - first_payment_date.month)
+months_until_exam = max(months_until_exam, 0)  # Ensure it's not negative
 available_installments = list(range(1, min(12, months_until_exam + 1) + 1))
-num_payments = st.selectbox("Select Number of Installments", available_installments)
 
-if st.button("Calculate Payment Plan"):
-    if total_cost > 0:
-        payment_plan = calculate_payment_plan(first_payment_date.strftime("%d-%m-%Y"), course_end_date.strftime("%d-%m-%Y"), total_cost, num_payments, course_started)
-        st.subheader("Payment Schedule:")
-        for date, amount in payment_plan:
-            st.write(f"{date}: {amount}")
-    else:
-        st.error("Please enter a valid total course cost.")
+if available_installments:
+    num_payments = st.selectbox("Select Number of Installments", available_installments)
+
+    if st.button("Calculate Payment Plan"):
+        if total_cost > 0:
+            payment_plan = calculate_payment_plan(
+                first_payment_date.strftime("%d-%m-%Y"),
+                course_end_date.strftime("%d-%m-%Y"),
+                total_cost,
+                num_payments,
+                downpayment_is_499
+            )
+            st.subheader("Payment Schedule:")
+            for date, amount in payment_plan:
+                st.write(f"{date}: {amount}")
+        else:
+            st.error("Please enter a valid total course cost.")
+else:
+    st.warning("No available payment months before the exam month. Please choose a different exam month.")
