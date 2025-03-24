@@ -21,7 +21,7 @@ def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_co
         payment_date = first_payment_date + relativedelta(months=i)
         if payment_date > course_end_date:
             break
-        payment_schedule.append((payment_date.strftime("%d-%m-%Y"), monthly_payment))
+        payment_schedule.append((payment_date.strftime("%-d %B %Y"), monthly_payment))
 
     return payment_schedule, downpayment, finance_fee, late_fee, monthly_payment
 
@@ -37,6 +37,10 @@ st.markdown("""
         background-color: white;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .payment-line {
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #eee;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -85,7 +89,7 @@ try:
         st.markdown("""
         ### 📅 Course Details
         """)
-        st.write(f"**Start Date:** {course_start_date.strftime('%d-%m-%Y')}")
+        st.write(f"**Start Date:** {course_start_date.strftime('%-d %B %Y')}")
         st.write(f"**Exam Month:** {course_end_date.strftime('%B %Y')}")
         st.write(f"**Tuition Pricing:** £{total_cost:.2f}")
 
@@ -115,9 +119,13 @@ try:
 
                 st.markdown("""
                 ### 📅 Payment Schedule
-                """)
+                <div class='payment-schedule'>
+                """, unsafe_allow_html=True)
+
                 for date, amount in payment_plan:
-                    st.write(f"{date}: £{amount:.2f}")
+                    st.markdown(f"<div class='payment-line'><strong>{date}:</strong> £{amount:.2f}</div>", unsafe_allow_html=True)
+
+                st.markdown("</div>", unsafe_allow_html=True)
 
         else:
             st.warning("No available payment months before the exam month.")
