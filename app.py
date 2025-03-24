@@ -29,8 +29,8 @@ def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_co
 
 st.title("Payment Plan Calculator")
 
-# SharePoint direct download link (requires anonymous access setup)
-EXCEL_URL = "https://barbri1-my.sharepoint.com/:x:/g/personal/conor_finn_barbri_com/EYGtJ2SNCv1LtN0scS_xXqsBnkIejZaU1t7-LqKuI4v-mw?download=1"
+# Dropbox direct download link
+EXCEL_URL = "https://www.dropbox.com/scl/fi/qldz8wehdhzd4x05hostg/Products-with-Start-Date-Payment-Plan.xlsx?rlkey=ktap7w88dmoeohd7vwyfdwsl3&st=8v58uuiq&dl=1"
 
 try:
     df = pd.read_excel(EXCEL_URL, engine="openpyxl")
