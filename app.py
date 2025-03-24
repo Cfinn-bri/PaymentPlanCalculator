@@ -59,7 +59,11 @@ try:
 
     if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
         categories = {
-            "All Courses": df,
+            "All Courses": pd.concat([
+                df[df["product name"].str.contains("SQE1", case=False, na=False)],
+                df[df["product name"].str.contains("SQE2", case=False, na=False)],
+                df[df["product name"].str.contains("Complete SQE", case=False, na=False)]
+            ]).drop_duplicates(),
             "SQE1": df[df["product name"].str.contains("SQE1", case=False, na=False)],
             "SQE2": df[df["product name"].str.contains("SQE2", case=False, na=False)],
             "Complete SQE": df[df["product name"].str.contains("Complete SQE", case=False, na=False)]
