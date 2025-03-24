@@ -30,17 +30,21 @@ st.markdown("""
     <style>
     .stApp {
         font-family: 'Segoe UI', sans-serif;
-        background-color: #f9f9f9;
+        background-color: var(--background-color, #f9f9f9);
     }
     .block-container {
         padding: 2rem;
-        background-color: white;
+        background-color: var(--card-bg-color, #ffffff);
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .payment-line {
         padding: 0.3rem 0;
         border-bottom: 1px solid #eee;
+    }
+    html[data-theme="dark"] .stApp {
+        --background-color: #0e1117;
+        --card-bg-color: #1e1e1e;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -55,6 +59,7 @@ try:
 
     if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
         categories = {
+            "All Courses": df,
             "SQE1": df[df["product name"].str.contains("SQE1", case=False, na=False)],
             "SQE2": df[df["product name"].str.contains("SQE2", case=False, na=False)],
             "Complete SQE": df[df["product name"].str.contains("Complete SQE", case=False, na=False)]
