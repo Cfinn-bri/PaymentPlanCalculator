@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import matplotlib.pyplot as plt
 
 def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_cost, num_payments, course_started):
     first_payment_date = datetime.strptime(first_payment_date_str, "%d-%m-%Y")
@@ -26,9 +25,24 @@ def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_co
 
     return payment_schedule, downpayment, finance_fee, late_fee, monthly_payment
 
-st.title("Payment Plan Calculator")
+st.set_page_config(page_title="Payment Plan Calculator", layout="centered")
+st.markdown("""
+    <style>
+    .stApp {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #f9f9f9;
+    }
+    .block-container {
+        padding: 2rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Dropbox direct download link
+st.title("📘 Payment Plan Calculator")
+
 EXCEL_URL = "https://www.dropbox.com/scl/fi/qldz8wehdhzd4x05hostg/Products-with-Start-Date-Payment-Plan.xlsx?rlkey=ktap7w88dmoeohd7vwyfdwsl3&st=8v58uuiq&dl=1"
 
 try:
@@ -36,7 +50,6 @@ try:
     df.columns = df.columns.str.strip().str.lower()
 
     if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
-        # Category Selection
         categories = {
             "SQE1": df[df["product name"].str.contains("SQE1", case=False, na=False)],
             "SQE2": df[df["product name"].str.contains("SQE2", case=False, na=False)],
@@ -46,7 +59,7 @@ try:
         selected_category = st.selectbox("Select a Category", list(categories.keys()))
         filtered_df = categories[selected_category]
 
-        search_term = st.text_input("Filter Courses (optional):").strip().lower()
+        search_term = st.text_input("🔍 Filter Courses (optional):").strip().lower()
         filtered_courses = filtered_df[filtered_df["product name"].str.lower().str.contains(search_term)] if search_term else filtered_df
 
         course_name = st.selectbox("Select a Course", filtered_courses["product name"].unique())
@@ -61,7 +74,6 @@ try:
         downpayment_is_499 = today >= datetime.combine(course_start_date, datetime.min.time())
         course_started = today > datetime.combine(course_start_date, datetime.min.time())
 
-        # Ensure first payment is no more than 12 months before exam date
         earliest_allowed_payment = course_end_date - relativedelta(months=12)
         if first_payment_date < earliest_allowed_payment:
             first_payment_date = datetime(earliest_allowed_payment.year, earliest_allowed_payment.month, 1)
@@ -70,6 +82,9 @@ try:
         months_until_exam = max(months_until_exam, 0)
         available_installments = list(range(1, months_until_exam + 1))
 
+        st.markdown("""
+        ### 📅 Course Details
+        """)
         st.write(f"**Start Date:** {course_start_date.strftime('%d-%m-%Y')}")
         st.write(f"**Exam Month:** {course_end_date.strftime('%B %Y')}")
         st.write(f"**Tuition Pricing:** £{total_cost:.2f}")
@@ -77,7 +92,7 @@ try:
         if available_installments:
             num_payments = st.selectbox("Select Number of Installments", available_installments)
 
-            if st.button("Calculate Payment Plan"):
+            if st.button("📊 Calculate Payment Plan"):
                 payment_plan, downpayment, finance_fee, late_fee, monthly_payment = calculate_payment_plan(
                     first_payment_date.strftime("%d-%m-%Y"),
                     course_end_date.strftime("%d-%m-%Y"),
@@ -88,31 +103,21 @@ try:
 
                 total_paid = downpayment + finance_fee + late_fee + (monthly_payment * num_payments)
 
-                st.subheader("Summary")
-                st.write(f"**Downpayment:** £{downpayment:.2f}")
-                st.write(f"**Finance Fee:** £{finance_fee:.2f}")
-                st.write(f"**Late Fee:** £{late_fee:.2f}")
+                st.markdown("""
+                ### 💡 Summary
+                """)
+                st.success(f"**Downpayment:** £{downpayment:.2f}")
+                st.info(f"**Finance Fee:** £{finance_fee:.2f}")
+                if late_fee:
+                    st.warning(f"**Late Fee:** £{late_fee:.2f}")
                 st.write(f"**Monthly Payment:** £{monthly_payment:.2f} × {num_payments} months")
                 st.write(f"**Total Paid:** £{total_paid:.2f}")
 
-                st.subheader("Payment Schedule:")
+                st.markdown("""
+                ### 📅 Payment Schedule
+                """)
                 for date, amount in payment_plan:
                     st.write(f"{date}: £{amount:.2f}")
-
-                # Timeline chart (only include valid date-payment pairs)
-                filtered_schedule = [
-                    (date, amount) for date, amount in payment_plan
-                    if "Immediate" not in date and "+" not in date and isinstance(amount, (int, float))
-                ]
-                if filtered_schedule:
-                    dates, amounts = zip(*filtered_schedule)
-                    fig, ax = plt.subplots()
-                    ax.bar(dates, amounts)
-                    ax.set_title("Monthly Payment Timeline")
-                    ax.set_xlabel("Payment Date")
-                    ax.set_ylabel("Amount (£)")
-                    ax.tick_params(axis='x', rotation=45)
-                    st.pyplot(fig)
 
         else:
             st.warning("No available payment months before the exam month.")
