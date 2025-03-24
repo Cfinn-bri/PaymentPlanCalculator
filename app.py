@@ -88,10 +88,14 @@ try:
 
         apply_promo = st.checkbox("Do you have a promo code?")
         if apply_promo:
-            amount_off = st.number_input("Amount Off (£)", min_value=0.0, value=0.0)
-            percent_off = st.number_input("Percent Off (%)", min_value=0.0, max_value=100.0, value=0.0)
-            total_cost -= amount_off
-            total_cost -= (percent_off / 100.0) * total_cost
+            promo_option = st.radio("Choose Discount Type:", ["Amount Off", "Percent Off"])
+            amount_off = percent_off = 0.0
+            if promo_option == "Amount Off":
+                amount_off = st.number_input("Amount Off (£)", min_value=0.0, value=0.0, key="amount_off")
+                total_cost -= amount_off
+            elif promo_option == "Percent Off":
+                percent_off = st.number_input("Percent Off (%)", min_value=0.0, max_value=100.0, value=0.0, key="percent_off")
+                total_cost -= (percent_off / 100.0) * total_cost
 
         first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
         downpayment_is_499 = today >= datetime.combine(course_start_date, datetime.min.time())
