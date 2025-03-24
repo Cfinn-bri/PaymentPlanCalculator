@@ -57,7 +57,10 @@ try:
     df = pd.read_excel(EXCEL_URL, engine="openpyxl")
     df.columns = df.columns.str.strip().str.lower()
 
-    if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing"]):
+    if all(col in df.columns for col in ["product name", "course start date", "course end date", "tuition pricing", "ecommerce enrollment deadline"]):
+        today = datetime.today()
+        df = df[pd.to_datetime(df["ecommerce enrollment deadline"], errors='coerce', dayfirst=True) >= today]
+
         categories = {
             "All Courses": pd.concat([
                 df[df["product name"].str.contains("SQE1", case=False, na=False)],
@@ -80,9 +83,16 @@ try:
 
         course_start_date = pd.to_datetime(course_data["course start date"], dayfirst=True)
         course_end_date = pd.to_datetime(course_data["course end date"], dayfirst=True)
+        enrollment_deadline = pd.to_datetime(course_data["ecommerce enrollment deadline"], dayfirst=True)
         total_cost = float(course_data["tuition pricing"])
 
-        today = datetime.today()
+        apply_promo = st.checkbox("Do you have a promo code?")
+        if apply_promo:
+            amount_off = st.number_input("Amount Off (£)", min_value=0.0, value=0.0)
+            percent_off = st.number_input("Percent Off (%)", min_value=0.0, max_value=100.0, value=0.0)
+            total_cost -= amount_off
+            total_cost -= (percent_off / 100.0) * total_cost
+
         first_payment_date = datetime(today.year, today.month, 1) + relativedelta(months=1)
         downpayment_is_499 = today >= datetime.combine(course_start_date, datetime.min.time())
         course_started = today > datetime.combine(course_start_date, datetime.min.time())
@@ -100,6 +110,7 @@ try:
         """)
         st.write(f"**Start Date:** {course_start_date.strftime('%-d %B %Y')}")
         st.write(f"**Exam Month:** {course_end_date.strftime('%B %Y')}")
+        st.write(f"**Enrollment Deadline:** {enrollment_deadline.strftime('%-d %B %Y')}")
         st.write(f"**Tuition Pricing:** £{total_cost:.2f}")
 
         if available_installments:
@@ -139,6 +150,6 @@ try:
         else:
             st.warning("No available payment months before the exam month.")
     else:
-        st.error("Excel file must contain columns: Product Name, Course Start Date, Course End Date, Tuition Pricing")
+        st.error("Excel file must contain columns: Product Name, Course Start Date, Course End Date, Tuition Pricing, Ecommerce Enrollment Deadline")
 except Exception as e:
     st.error(f"Failed to load course data: {e}")
