@@ -99,10 +99,13 @@ try:
                 for date, amount in payment_plan:
                     st.write(f"{date}: £{amount:.2f}")
 
-                # Timeline chart
-                dates = [date for date, _ in payment_plan if "Immediate" not in date and "+" not in date]
-                amounts = [amount for date, amount in payment_plan if isinstance(amount, (int, float))]
-                if dates and amounts:
+                # Timeline chart (only include valid date-payment pairs)
+                filtered_schedule = [
+                    (date, amount) for date, amount in payment_plan
+                    if "Immediate" not in date and "+" not in date and isinstance(amount, (int, float))
+                ]
+                if filtered_schedule:
+                    dates, amounts = zip(*filtered_schedule)
                     fig, ax = plt.subplots()
                     ax.bar(dates, amounts)
                     ax.set_title("Monthly Payment Timeline")
