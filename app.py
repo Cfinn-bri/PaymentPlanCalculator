@@ -29,7 +29,7 @@ def calculate_payment_plan(first_payment_date_str, course_end_date_str, total_co
 
 st.title("Payment Plan Calculator")
 
-EXCEL_URL = "https://barbri1-my.sharepoint.com/:x:/g/personal/conor_finn_barbri_com/EYGtJ2SNCv1LtN0scS_xXqsB9y1Jcb0FfCKW5ehC_Rlcgg?e=nfwHtr.xlsx"
+EXCEL_URL = "https://barbri1-my.sharepoint.com/:x:/g/personal/conor_finn_barbri_com/EYGtJ2SNCv1LtN0scS_xXqsBnkIejZaU1t7-LqKuI4v-mw?e=d0heuq"
 
 try:
     df = pd.read_excel(EXCEL_URL, engine="openpyxl")
